@@ -15,7 +15,13 @@ public class SignedUI {
             System.out.println("2. Đăng nhập cho teacher");
             System.out.println("3. Đăng nhập cho student");
             System.out.println("Lựa chọn của bạn là:");
-            int choice = scanner.nextInt();
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Lựa chọn không hợp lệ.");
+                continue;
+            }
             switch (choice) {
                 case 1:
                     signedAdmin();

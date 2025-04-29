@@ -18,9 +18,13 @@ public class SuperAdminUI {
             System.out.println("6. Quản lý khóa học (Thêm, sửa, xóa, xem danh sách)");
             System.out.println("7. Gửi thông báo cho sinh viên (Thêm, sửa, xóa, xem danh sách)");
             System.out.println("8. Đăng xuất");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Lựa chọn không hợp lệ.");
+                continue;
+            }
             switch (choice) {
                 case 1:
                     manageAdmin();
@@ -31,14 +35,14 @@ public class SuperAdminUI {
                 case 3:
                     break;
                 case 4:
-                    ClassUI.quanLyLopHoc(); // ✅ Gọi giao diện quản lý lớp học
+
                     break;
                 case 5:
                     break;
                 case 6:
                     break;
                 case 7:
-                    NotificationUI.run(1, "admin"); // Truyền ID thật và vai trò thật của người gửi
+
                     break;
                 case 8:
                     return;

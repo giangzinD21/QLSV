@@ -16,16 +16,20 @@ public class StudentUI {
             System.out.println("3. Xem kết quả đăng ký môn học");
             System.out.println("4. Xem thông báo từ giảng viên/quản trị viên");
             System.out.println("5. Đăng xuất");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Lựa chọn không hợp lệ.");
+                continue;
+            }
             switch (choice) {
                 case 1:
                     break;
                 case 2:
                     break;
                 case 3:
-                    RegistrationUI.showRegistrationMenu(studentId);                    break;
+                    break;
                 case 4:
                     return;
                 case 5:

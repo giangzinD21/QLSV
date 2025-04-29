@@ -22,10 +22,10 @@ public class AdminDAO implements InterfaceDAO<Admin> {
                         AdminUI.indexAdmins();
                     }
                 } else {
-                    System.out.println("Wrong email or password");
+                    System.out.println("Tài khoản hoặc mật khẩu không đúng");
                 }
             } else {
-                System.out.println("User not found");
+                System.out.println("Không tồn tại tài khoản này");
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -22,7 +22,6 @@ public class TeacherUI {
                 case 1:
                     break;
                 case 2:
-                    ClassUI.quanLyLopHoc();
                     break;
                 case 3:
                     return;

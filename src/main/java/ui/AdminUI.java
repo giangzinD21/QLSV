@@ -15,9 +15,13 @@ public class AdminUI {
             System.out.println("6. Gửi thông báo cho sinh viên (Thêm, sửa, xóa, xem danh sách)");
             System.out.println("7. Đăng xuất");
             System.out.print("Nhập lựa chọn của bạn: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
+            int choice;
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Lựa chọn không hợp lệ.");
+                continue;
+            }
             switch (choice) {
                 case 1:
                     // TODO: Quản lý sinh viên
