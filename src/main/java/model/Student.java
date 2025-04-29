@@ -1,44 +1,82 @@
 package model;
 
-import java.sql.Timestamp;
-
 public class Student {
-    private int student_id;
+    private int studentId;
     private String name;
-    private String student_code;
+    private String studentCode;
     private String email;
     private String password;
-    private Timestamp createdAt;
 
-    public Student(String name, String student_code, String email, String password) {
+
+    public Student() {
+    }
+
+    public Student(int studentId, String name, String studentCode, String email, String password) {
+        this.studentId = studentId;
         this.name = name;
-        this.student_code = student_code;
+        this.studentCode = studentCode;
         this.email = email;
         this.password = password;
     }
 
-    public int getIdStudent() {
-        return student_id;
+    public Student(int studentId) {
+        this.studentId = studentId;
+
+    }
+
+    public Student(String name, String studentCode, String email, String password) {
+    }
+
+    public int getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(int studentId) {
+        this.studentId = studentId;
     }
 
     public String getName() {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getStudentCode() {
+        return studentCode;
+    }
+
+    public void setStudentCode(String studentCode) {
+        this.studentCode = studentCode;
+    }
+
     public String getEmail() {
         return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public Timestamp getCreatedAt() {
-        return createdAt;
+    public void setPassword(String password) {
+        this.password = password;
     }
+
 
     @Override
     public String toString() {
-        return "Student{id=" + student_id + ", name='" + name + "', email='" + email + "'}";
+        return "Student{" +
+                "studentId=" + studentId +
+                ", name='" + name + '\'' +
+                ", studentCode='" + studentCode + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+
+                '}';
     }
 }

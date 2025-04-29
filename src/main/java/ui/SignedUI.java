@@ -1,8 +1,7 @@
 package ui;
 import dao.AdminDAO;
 import dao.StudentDAO;
-import model.Student;
-import java.util.List;
+
 import java.util.Scanner;
 
 public class SignedUI {

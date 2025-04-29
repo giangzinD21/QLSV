@@ -1,9 +1,12 @@
 package ui;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import dao.StudentDAO;
 >>>>>>> origin/huyle
+=======
+>>>>>>> origin/lamhoang
 import java.util.Scanner;
 import ui.ClassUI;
 
