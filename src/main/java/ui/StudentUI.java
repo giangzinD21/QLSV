@@ -4,6 +4,7 @@ import dao.StudentDAO;
 import model.Student;
 import java.util.List;
 import java.util.Scanner;
+import ui.RegistrationUI;
 
 public class StudentUI {
     private static Scanner scanner = new Scanner(System.in);
@@ -29,7 +30,11 @@ public class StudentUI {
                 case 2:
                     break;
                 case 3:
+<<<<<<< HEAD
                     break;
+=======
+                    RegistrationUI.showRegistrationMenu(studentId);                    break;
+>>>>>>> origin/huyle
                 case 4:
                     return;
                 case 5:

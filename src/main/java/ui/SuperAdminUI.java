@@ -3,6 +3,8 @@ package ui;
 import java.util.Scanner;
 
 import static ui.ManageAdminUI.manageAdmin;
+import ui.ClassUI;
+import ui.NotificationUI;
 
 public class SuperAdminUI {
     private static Scanner scanner = new Scanner(System.in);
@@ -35,14 +37,22 @@ public class SuperAdminUI {
                 case 3:
                     break;
                 case 4:
+<<<<<<< HEAD
 
+=======
+                    ClassUI.quanLyLopHoc(); // ✅ Gọi giao diện quản lý lớp học
+>>>>>>> origin/huyle
                     break;
                 case 5:
                     break;
                 case 6:
                     break;
                 case 7:
+<<<<<<< HEAD
 
+=======
+                    NotificationUI.run(1, "admin"); // Truyền ID thật và vai trò thật của người gửi
+>>>>>>> origin/huyle
                     break;
                 case 8:
                     return;

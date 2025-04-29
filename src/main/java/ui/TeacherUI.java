@@ -1,6 +1,8 @@
 package ui;
 
 import java.util.Scanner;
+import ui.ClassUI;
+
 
 
 public class TeacherUI {
@@ -22,6 +24,7 @@ public class TeacherUI {
                 case 1:
                     break;
                 case 2:
+                    ClassUI.quanLyLopHoc();
                     break;
                 case 3:
                     return;
