@@ -1,8 +1,6 @@
 package ui;
 
 import java.util.Scanner;
-import ui.ClassUI;
-
 
 
 public class TeacherUI {
