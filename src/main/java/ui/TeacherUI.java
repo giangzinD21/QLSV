@@ -1,40 +1,75 @@
 package ui;
 
+import dao.GradeDAO;
+import dao.GroupScheduleDAO;
+import dao.NotificationDAO;
+import dao.TeacherDAO;
+import model.Notification;
+import model.Teacher;
+import model.TeacherSchedule;
+
+import java.util.List;
 import java.util.Scanner;
 
 
 public class TeacherUI {
     private static Scanner scanner = new Scanner(System.in);
-//    private static StudentDAO studentDAO = new StudentDAO();
+    private static final TeacherDAO teacherDAO = new TeacherDAO();
+    private static final GroupScheduleDAO csDao = new GroupScheduleDAO();
 
-    public static void manageTeachers() {
-        while (true) {
-            System.out.println("1. Quản lý khóa học (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("2. Quản lý lớp học (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("3. Nhập điểm và đánh giá sinh viên (Thêm, sửa, xóa, xem điểm)");
-            System.out.println("4. Quản lý lịch học (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("5. Gửi thông báo cho sinh viên (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("6. Đăng xuất");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
+    public static void showMenu(int userId) {
+        try {
+            int teacherId = teacherDAO.selectByUserId(userId);
+            while (true) {
+                System.out.println("1. Xem lịch dạy");
+                System.out.println("2. Nhận thông báo");
+                System.out.println("0. Đăng xuất");
+                System.out.print("Chọn chức năng: ");
+                int choice = scanner.nextInt();
+                scanner.nextLine();
 
-            switch (choice) {
-                case 1:
-                    break;
-                case 2:
-                    ClassUI.quanLyLopHoc();
-                    break;
-                case 3:
-                    return;
-                case 4:
-                    return;
-                case 5:
-                    return;
-                case 6:
-                    return;
-                default:
-                    System.out.println("Lựa chọn không hợp lệ!");
+                switch (choice) {
+                    case 0:
+                        return;
+                    case 1:
+                        viewTeachingSchedule(teacherId);
+                        break;
+                    case 2:
+                        showNotificationsTeacher(teacherId);
+                        break;
+                    default:
+                        System.out.println("Lựa chọn không hợp lệ!");
+                }
             }
         }
+        catch (Exception e){
+            System.out.println("Lỗi: " + e.getMessage());
+        }
     }
+    private static void viewTeachingSchedule(int teacherId) {
+        List<TeacherSchedule> list = csDao.selectByTeacher(teacherId);
+        if (list.isEmpty()) {
+            System.out.println(">> Chưa có lịch dạy nào.");
+            return;
+        }
+        System.out.printf("%-3s | %-10s | %-25s | %-3s | %-11s | %s%n",
+                "ID", "GROUP", "COURSE", "DAY", "TIMESLOT", "ROOM");
+        System.out.println("-------------------------------------------------------------------------------------");
+        for (TeacherSchedule ts : list) {
+            System.out.println(ts);
+        }
+        System.out.println("-------------------------------------------------------------------------------------");
+    }
+    private static void showNotificationsTeacher(int teacherId) {
+        List<Notification> inbox = new NotificationDAO().selectInbox("teacher", teacherId);
+        if (inbox.isEmpty()) {
+            System.out.println(">> Chưa có thông báo.");
+            return;
+        }
+        System.out.println("\n--- HỘP THƯ THÔNG BÁO ---");
+        for (Notification n : inbox) {
+            System.out.println(n);
+        }
+    }
+
 }

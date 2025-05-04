@@ -1,10 +1,9 @@
 package btl;
 
-import ui.SignedUI;
+import ui.LoginUI;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        SignedUI.SignedMananger();
-
+        LoginUI.LoginUser();
     }
 }

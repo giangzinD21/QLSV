@@ -4,158 +4,192 @@ import dao.AdminDAO;
 import model.Admin;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.Scanner;
 
 public class ManageAdminUI {
-    private static Scanner scanner = new Scanner(System.in);
-    private static AdminDAO adminDAO = new AdminDAO();
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final AdminDAO adminDAO = new AdminDAO();
 
-    public static void manageAdmin() throws Exception {
-        while (true) {
-            System.out.println("1. Thêm Admin");
-            System.out.println("2. Sửa Admin");
-            System.out.println("3. Xóa Admin");
-            System.out.println("4. Xem danh sách Admin");
-            System.out.println("5. Thoát");
+    public static void showMenu() {
+        do {
+            System.out.println("\n==================== QUẢN LÝ ADMIN ====================");
+            System.out.println("1. Xem danh sách Admin");
+            System.out.println("2. Thêm Admin");
+            System.out.println("3. Sửa Admin");
+            System.out.println("4. Xóa Admin");
+            System.out.println("0. Quay lại");
+            System.out.print("Chọn chức năng: ");
             int choice;
             try {
                 choice = Integer.parseInt(scanner.nextLine());
             } catch (NumberFormatException e) {
-                System.out.println("❌ Lựa chọn không hợp lệ.");
-                continue;
+                System.out.println(">> Vui lòng nhập số.");
+                choice = -1;
             }
+
             switch (choice) {
                 case 1:
-                    addAdmin();
+                    viewAdmins();
                     break;
                 case 2:
-                    updateAdmin();
+                    addAdmin();
                     break;
                 case 3:
-                    deleteAdmin();
+                    updateAdmin();
                     break;
                 case 4:
-                    listAdmins();
+                    deleteAdmin();
                     break;
-                case 5:
+                case 0:
+                    System.out.println(">> Quay lại menu trước.");
                     return;
                 default:
-                    System.out.println("Lựa chọn không hợp lệ!");
+                    System.out.println(">> Lựa chọn không hợp lệ.");
             }
-        }
-    }
-    public static void validateName(String name) throws Exception {
-        if (name == null || name.trim().isEmpty()) {
-            throw new Exception("Tên tài khoản không được để trống.");
-        }
-
-        if (name.contains(" ")) {
-            throw new Exception("Tên tài khoản không được chứa khoảng trắng.");
-        }
-
-        if (name.length() < 3) {
-            throw new Exception("Tên tài khoản phải có ít nhất 3 ký tự.");
-        }
-
-
-    }
-    public static void validateIsSuper(String isSuper) throws Exception {
-        if (!isSuper.equals("true") && !isSuper.equals("false")) {
-            throw new Exception("Hãy nhập đúng true hoặc false.");
-        }
+        } while (true);
     }
 
-    public static void validatePassword(String password) throws Exception {
-        if (password.length() < 6) {
-            throw new Exception("Mật khẩu cần ít nhất 6 ký tự.");
-        }
-        if (password.contains(" ")) {
-            throw new Exception("Mật khẩu không được chứa khoảng trắng.");
-        }
-    }
-    private static void addAdmin(){
-        while(true) {
-            try {
-                System.out.print("Nhập tên Admin: ");
-                String name = scanner.nextLine().trim();
-                validateName(name);
-                Admin existingAdmin = adminDAO.selectByName(name);
-                if (existingAdmin != null) {
-                    throw new Exception("Tài khoản đã tồn tại.");
-                }
-                System.out.print("Nhập mật khẩu: ");
-                String password = scanner.nextLine().trim();
-                validatePassword(password);
-                System.out.print("Là Super Admin? (true/false): ");
-                String checkSuper = scanner.nextLine().trim();
-                validateIsSuper(checkSuper);
-                boolean isSuper = checkSuper.equals("true");
-                Admin admin = new Admin(name, isSuper, password);
-                adminDAO.add(admin);
-                System.out.println("Admin đã được thêm thành công!");
-                break;
+    private static void viewAdmins() {
+        try {
+            List<Admin> admins = adminDAO.selectAll();
+            if (admins.isEmpty()) {
+                System.out.println(">> Chưa có Admin nào trong hệ thống.");
+                return;
             }
-            catch (Exception e) {
-                System.out.println(e.getMessage());
+            System.out.println("\n==================== DANH SÁCH ADMIN ====================");
+            System.out.printf("%-5s | %-15s | %-20s | %-5s | %-25s | %s%n", "ID", "USERNAME", "HỌ TÊN", "SUPER", "EMAIL", "CREATED_AT");
+            System.out.println("---------------------------------------------------------------------------------------------");
+            for (Admin a : admins) {
+                String created = a.getCreatedAt() != null ? a.getCreatedAt().toString() : "";
+                System.out.printf("%-5d | %-15s | %-20s | %-5s | %-25s | %s%n",
+                        a.getAdminId(), a.getUsername(), a.getName(), a.isSuperAdmin(), a.getEmail(), created);
             }
+            System.out.println("---------------------------------------------------------------------------------------------");
+            System.out.println(">> Tổng số Admin: " + admins.size());
+        } catch (Exception e) {
+            System.out.println(">> Lỗi khi lấy danh sách Admin: " + e.getMessage());
+        }
+    }
+
+    private static void addAdmin() {
+        try {
+            System.out.println("\n==================== THÊM ADMIN MỚI ====================");
+            System.out.print("Username: ");
+            String username = scanner.nextLine().trim();
+            if (username.isEmpty()) return;
+            System.out.print("Mật khẩu: ");
+            String password = scanner.nextLine().trim();
+            if (password.isEmpty()) return;
+            System.out.print("Họ và tên: ");
+            String name = scanner.nextLine().trim();
+            if (name.isEmpty()) return;
+            System.out.print("Email: ");
+            String email = scanner.nextLine().trim();
+            if (email.isEmpty()) return;
+            System.out.print("Là Super Admin? (true/false): ");
+            String sup = scanner.nextLine().trim().toLowerCase();
+            if (sup.isEmpty()) return;
+            boolean isSuper;
+            if (sup.equals("y") || sup.equals("true")) {
+                isSuper = true;
+            } else if (sup.equals("n") || sup.equals("false")) {
+                isSuper = false;
+            } else {
+                System.out.println(">> Lỗi: Vui lòng nhập y/n hoặc true/false.");
+                return;
+            }
+            System.out.println();
+            Admin admin = new Admin();
+            admin.setUsername(username);
+            admin.setPassword(password);
+            admin.setName(name);
+            admin.setEmail(email);
+            admin.setSuperAdmin(isSuper);
+            admin.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+
+            adminDAO.add(admin);
+
+        } catch (Exception e) {
+            System.out.println(">> Lỗi khi thêm Admin: " + e.getMessage());
         }
     }
 
     private static void updateAdmin() {
-        while (true) {
-            try{
-                System.out.print("Nhập tên Admin cần sửa: ");
-                String name = scanner.nextLine().trim();
-                validateName(name);
-                Admin existingAdmin = adminDAO.selectByName(name);
-                if(existingAdmin == null) {
-                    throw new Exception("Tài khoản không tồn tại");
-                }
-                System.out.print("Nhập mật khẩu mới: ");
-                String password = scanner.nextLine();
-                validatePassword(password);
-                System.out.print("Là Super Admin? (true/false): ");
-                String checkSuper = scanner.nextLine().trim();
-                validateIsSuper(checkSuper);
-                boolean isSuper = checkSuper.equals("true");
-                Admin updatedAdmin = new Admin(name, isSuper, password);
-                adminDAO.update(updatedAdmin);
-                System.out.println("Tài khoản " + updatedAdmin.getName() +" đã được cập nhật thành công!");
+        try {
+            System.out.println("\n==================== CẬP NHẬT ADMIN ====================");
+            System.out.print("Nhập admin_id cần sửa: ");
+            int id = Integer.parseInt(scanner.nextLine().trim());
+            Admin existing = adminDAO.selectById(id);
+            if (existing == null) {
+                System.out.println(">> Không tìm thấy Admin.");
+                return;
             }
-            catch(Exception e){
-                System.out.println(e.getMessage());
-            }
-        }
 
+            System.out.print("Username mới (ENTER để giữ): ");
+            String username = scanner.nextLine().trim();
+            if (!username.isEmpty()) existing.setUsername(username);
+
+            System.out.print("Mật khẩu mới (ENTER để giữ): ");
+            String password = scanner.nextLine().trim();
+            if (!password.isEmpty()) existing.setPassword(password);
+
+            System.out.print("Họ và tên mới (ENTER để giữ): ");
+            String name = scanner.nextLine().trim();
+            if (!name.isEmpty()) existing.setName(name);
+
+            System.out.print("Email mới (ENTER để giữ): ");
+            String email = scanner.nextLine().trim();
+            if (!email.isEmpty()) existing.setEmail(email);
+
+            System.out.print("Super Admin? (true/false, ENTER để giữ): ");
+            String sup = scanner.nextLine().trim();
+            if (!sup.isEmpty()){
+                if (sup.equals("y") || sup.equals("true")) {
+                    existing.setSuperAdmin(true);
+                } else if (sup.equals("n") || sup.equals("false")) {
+                    existing.setSuperAdmin(false);
+                } else {
+                    System.out.println(">> Lỗi: Vui lòng nhập y/n hoặc true/false.");
+                    return;
+                }
+            }
+
+            adminDAO.update(existing);
+            System.out.println(">> Cập nhật Admin thành công!");
+        } catch (Exception e) {
+            System.out.println(">> Lỗi khi cập nhật Admin: " + e.getMessage());
+        }
     }
 
     private static void deleteAdmin() {
-        System.out.print("Nhập tên Admin cần xóa: ");
-        String name = scanner.nextLine();
-        Admin existingAdmin = adminDAO.selectByName(name);
-        if (existingAdmin != null) {
-            if(existingAdmin.getName().equals("admin")){
-                System.out.println("Không thể xóa tài khoản admin");
+        try {
+            System.out.println("\n==================== XÓA ADMIN ====================");
+            System.out.print("Nhập admin_id cần xóa: ");
+            int id;
+            try{
+                id = Integer.parseInt(scanner.nextLine().trim());
             }
-            else{
-                adminDAO.delete(existingAdmin);
-                System.out.println("Tài khoản " + existingAdmin.getName() + " đã được xóa thành công!");
+            catch (NumberFormatException e){
+                System.out.println(">> Lỗi: ID phải là số nguyên. Hãy thử lại.");
+                return;
             }
-        } else {
-            System.out.println("Tài khoản không tồn tại!");
-        }
-    }
-
-    private static void listAdmins() {
-        System.out.println("Danh sách Admins:");
-        if(adminDAO.selectAll().size() > 0){
-            for (Admin admin : adminDAO.selectAll()) {
-                System.out.println("Tên: " + admin.getName() + " | Super Admin: " + admin.isSuperAdmin() + " | password: " + admin.getPassword());
+            System.out.print(">> Bạn có chắc chắn muốn xóa? (y/n): ");
+            String confirm = scanner.nextLine().trim();
+            if (!confirm.equalsIgnoreCase("y")) {
+                System.out.println(">> Đã hủy.");
+                return;
             }
-        }
-        else{
-            System.out.println("Danh sách trống");
+            Admin existing = adminDAO.selectById(id);
+            if (existing == null) {
+                System.out.println(">> Không tìm thấy Admin với ID=" + id);
+                return;
+            }
+            System.out.println(existing);
+            adminDAO.delete(existing);
+        } catch (Exception e) {
+            System.out.println(">> Lỗi khi xóa Admin: " + e.getMessage());
         }
     }
 }
-

@@ -9,15 +9,15 @@ public class GradeService {
     private final GradeDAO gradeDAO = new GradeDAO();
 
     public ArrayList<Grade> getGrades(int studentId, String semester) {
-        return gradeDAO.getGradesByStudentAndSemester(studentId, semester);
+        return null;
     }
 
     public float calculateGPA(ArrayList<Grade> grades) {
         float totalScore = 0;
         int totalCredits = 0;
         for (Grade g : grades) {
-            totalScore += g.getGrade() * g.getCredits();
-            totalCredits += g.getCredits();
+//            totalScore += g.getGrade() * g.getCredits();
+//            totalCredits += g.getCredits();
         }
         return totalCredits == 0 ? 0 : totalScore / totalCredits;
     }

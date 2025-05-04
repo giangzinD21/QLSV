@@ -29,11 +29,11 @@ public class ClassService {
     }
 
     public Class getClassById(String classId) {
-        return classDAO.selectById(new Class(classId, null, null, 0));
+        return classDAO.selectById(Integer.parseInt(classId));
     }
 
     public ArrayList<Class> getClassesByTeacherId(String teacherId) {
-        return classDAO.selectByCondition(new Class(null, null, teacherId, 0));
+        return classDAO.selectByCondition(teacherId);
     }
 
     public Class getClassByName(String name) {

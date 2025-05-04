@@ -1,124 +1,149 @@
 package ui;
 
-import model.Notification;
 import dao.NotificationDAO;
+import model.Notification;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class NotificationUI {
-    private static final Scanner scanner = new Scanner(System.in);
+    private static final Scanner sc = new Scanner(System.in);
     private static final NotificationDAO dao = new NotificationDAO();
 
-    public static void run(int currentUserId, String currentRole) {
-        while (true) {
-            System.out.println("\n--- Quản lý Thông báo ---");
-            System.out.println("1. Thêm thông báo");
-            System.out.println("2. Cập nhật thông báo");
-            System.out.println("3. Xóa thông báo");
-            System.out.println("4. Xem tất cả thông báo");
-            System.out.println("5. Thoát");
-            System.out.print("Chọn: ");
+    public static void showMenu(int adminId) {
+        do {
+            System.out.println("\n==== QUẢN LÝ THÔNG BÁO ====");
+            System.out.println("1. Xem danh sách thông báo đã gửi");
+            System.out.println("2. Gửi thông báo mới");
+            System.out.println("3. Sửa thông báo");
+            System.out.println("4. Xóa thông báo");
+            System.out.println("0. Quay lại");
+            System.out.print("Chọn chức năng: ");
+            int choice;
             try {
-                int choice = Integer.parseInt(scanner.nextLine());
-                switch (choice) {
-                    case 1 -> addNotification(currentUserId, currentRole);
-                    case 2 -> updateNotification();
-                    case 3 -> deleteNotification();
-                    case 4 -> showAllNotifications();
-                    case 5 -> { return; }
-                    default -> System.out.println("Lựa chọn không hợp lệ!");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Vui lòng nhập số.");
+                choice = Integer.parseInt(sc.nextLine());
+            } catch (NumberFormatException ex) {
+                System.out.println("❌ Lựa chọn không hợp lệ!");
+                continue;
             }
-        }
-    }
 
-    private static void addNotification(int senderId, String senderRole) {
-        while (true) {
-            try {
-                System.out.print("Nhập nội dung thông báo: ");
-                String msg = scanner.nextLine().trim();
-                validateMessage(msg);
-
-                Notification noti = new Notification(senderId, senderRole, msg);
-                dao.add(noti);
-                System.out.println("Đã gửi thông báo.");
-                break;
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
+            switch (choice) {
+                case 1:
+                    viewAll(adminId);
+                    break;
+                case 2:
+                    sendNotification(adminId);
+                    break;
+                case 3:
+                    updateNotification(adminId);
+                    break;
+                case 4:
+                    deleteNotification(adminId);
+                    break;
+                case 0:
+                    System.out.println(">> Quay lại menu trước.");
+                    return;
+                default:
+                    System.out.println("❌ Lựa chọn không hợp lệ!");
             }
-        }
+        } while (true);
     }
-
-    private static void updateNotification() {
-        while (true) {
-            try {
-                System.out.print("Nhập ID thông báo cần sửa: ");
-                String idStr = scanner.nextLine().trim();
-                int id = validateNotificationId(idStr);
-
-                System.out.print("Nhập nội dung mới: ");
-                String msg = scanner.nextLine().trim();
-                validateMessage(msg);
-
-                Notification updated = new Notification(id);
-                updated.setMessage(msg);
-                dao.update(updated);
-                System.out.println("Đã cập nhật thông báo.");
-                break;
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
-    private static void deleteNotification() {
-        while (true) {
-            try {
-                System.out.print("Nhập ID thông báo cần xóa: ");
-                String idStr = scanner.nextLine().trim();
-                int id = validateNotificationId(idStr);
-
-                Notification toDelete = new Notification(id);
-                dao.delete(toDelete);
-                break;
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
-    private static void showAllNotifications() {
-        ArrayList<Notification> list = dao.selectAll();
+    private static void viewAll(int adminId) {
+        List<Notification> list = dao.selectAllBySender(adminId);
         if (list.isEmpty()) {
-            System.out.println("Không có thông báo nào.");
-        } else {
-            System.out.println("Danh sách thông báo:");
-            for (Notification n : list) {
-                System.out.println("ID: " + n.getId() + " | [" + n.getCreatedAt() + "] " +
-                        n.getSenderRole().toUpperCase() + " (ID: " + n.getSenderId() + "): " +
-                        n.getMessage());
+            System.out.println(">> Chưa có thông báo nào.");
+            return;
+        }
+        System.out.printf("%-5s | %-8s | %-10s | %-25 | %s%n",
+                "ID", "TARGET", "TARGET_ID", "CREATED_AT", "MESSAGE");
+        System.out.println("---------------------------------------------------------------------");
+        for (Notification n : list) {
+            String created = n.getCreatedAt() != null ? n.getCreatedAt().toString() : "";
+            String tid = n.getTargetId() != null ? n.getTargetId().toString() : "";
+            System.out.printf("%-5d | %-8s | %-10s | %-25s | %s%n",
+                    n.getNotificationId(),
+                    n.getTargetType(),
+                    tid,
+                    created,
+                    n.getMessage());
+        }
+    }
+
+    private static void sendNotification(int adminId) {
+        System.out.println("\n--- GỬI THÔNG BÁO MỚI ---");
+        System.out.print("Gửi cho (all/teacher/student): ");
+        String targetType = sc.nextLine().trim().toLowerCase();
+
+        Integer targetId = null;
+        if ("teacher".equals(targetType) || "student".equals(targetType)) {
+            System.out.printf("Nhập ID %s: ", targetType);
+            try {
+                targetId = Integer.parseInt(sc.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("❌ ID không hợp lệ. Hủy gửi.");
+                return;
             }
+        } else if (!"all".equals(targetType)) {
+            System.out.println("❌ Loại nhận không hợp lệ. Hủy gửi.");
+            return;
         }
+
+        System.out.print("Nội dung: ");
+        String message = sc.nextLine().trim();
+        if (message.isEmpty()) {
+            System.out.println("❌ Nội dung rỗng. Hủy gửi.");
+            return;
+        }
+
+        Notification n = new Notification(adminId, targetType, targetId, message);
+        dao.add(n);
     }
 
-    // Exception
-    private static void validateMessage(String msg) {
-        if (msg.isEmpty()) {
-            throw new IllegalArgumentException("Nội dung thông báo không được để trống.");
-        }
-    }
-
-    private static int validateNotificationId(String input) {
-        if (input.isEmpty()) throw new IllegalArgumentException("ID không được để trống.");
+    private static void updateNotification(int adminId) {
+        System.out.println("\n--- SỬA THÔNG BÁO ---");
+        System.out.print("Nhập Notification ID: ");
+        int nid;
         try {
-            int id = Integer.parseInt(input);
-            if (id < 0) throw new IllegalArgumentException("ID không được âm.");
-            return id;
+            nid = Integer.parseInt(sc.nextLine().trim());
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("ID phải là số nguyên hợp lệ.");
+            System.out.println("❌ ID không hợp lệ.");
+            return;
+        }
+        Notification n = dao.selectById(nid);
+        if (n == null || n.getSenderId() != adminId) {
+            System.out.println("❌ Không tìm thấy hoặc bạn không có quyền sửa.");
+            return;
+        }
+        System.out.println("Thông báo hiện tại: " + n.getMessage());
+        System.out.print("Nhập nội dung mới (ENTER để giữ): ");
+        String msg = sc.nextLine().trim();
+        if (!msg.isEmpty()) {
+            n.setMessage(msg);
+            dao.update(n);
+        } else {
+            System.out.println(">> Đã hủy sửa.");
+        }
+    }
+    private static void deleteNotification(int adminId) {
+        System.out.println("\n--- XÓA THÔNG BÁO ---");
+        System.out.print("Nhập Notification ID: ");
+        int nid;
+        try {
+            nid = Integer.parseInt(sc.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("❌ ID không hợp lệ.");
+            return;
+        }
+        Notification n = dao.selectById(nid);
+        if (n == null || n.getSenderId() != adminId) {
+            System.out.println("❌ Không tìm thấy hoặc bạn không có quyền xóa.");
+            return;
+        }
+        System.out.print("Xác nhận xóa? (y/n): ");
+        if (sc.nextLine().trim().equalsIgnoreCase("y")) {
+            dao.delete(nid);
+        } else {
+            System.out.println(">> Đã hủy xóa.");
         }
     }
 }

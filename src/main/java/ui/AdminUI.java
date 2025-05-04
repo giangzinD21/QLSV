@@ -1,29 +1,27 @@
 package ui;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-import dao.StudentDAO;
->>>>>>> origin/huyle
-=======
->>>>>>> origin/lamhoang
+import dao.AdminDAO;
+
 import java.util.Scanner;
-import ui.ClassUI;
 
 public class AdminUI {
     private static Scanner scanner = new Scanner(System.in);
-
-    public static void indexAdmins() {
+    private static AdminDAO adminDAO = new AdminDAO();
+    public static void showMenu(int userId) {
+        int adminId = adminDAO.selectByUserId(userId);
         while (true) {
-            System.out.println("1. Quản lý thông tin sinh viên1 (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("2. Quản lý giảng viên (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("3. Quản lý lớp học (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("4. Quản lý lịch học (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("5. Quản lý môn học (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("6. Gửi thông báo cho sinh viên (Thêm, sửa, xóa, xem danh sách)");
-            System.out.println("7. Đăng xuất");
-            System.out.print("Nhập lựa chọn của bạn: ");
-<<<<<<< HEAD
+            System.out.println("\n==== ADMIN MENU ====");
+            System.out.println("1. Quản lý Sinh viên");
+            System.out.println("2. Quản lý Giảng viên");
+            System.out.println("3. Quản lý Lớp hành chính");
+            System.out.println("4. Quản lý Lịch lớp hành chính");
+            System.out.println("5. Quản lý Môn học");
+            System.out.println("6. Quản lý lịch thi");
+            System.out.println("7. Quản lý Điểm số");
+            System.out.println("8. Quản lý thông báo");
+            System.out.println("0. Đăng xuất");
+            System.out.print("Chọn chức năng: ");
+
             int choice;
             try {
                 choice = Integer.parseInt(scanner.nextLine());
@@ -31,30 +29,40 @@ public class AdminUI {
                 System.out.println("❌ Lựa chọn không hợp lệ.");
                 continue;
             }
-=======
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
->>>>>>> origin/huyle
-            switch (choice) {
-                case 1:
-                    // TODO: Quản lý sinh viên
-                    break;
-                case 2:
-                    // TODO: Quản lý giảng viên
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    return;
-                case 5:
-                    return;
-                case 6:
-                    return;
-                case 7:
-                    return;
-                default:
-                    System.out.println("Lựa chọn không hợp lệ!");
+            try {
+                switch (choice) {
+                    case 0:
+                        System.out.println(">> Đăng xuất thành công!");
+                        return;
+                    case 1:
+                        ManageStudentUI.showMenu();
+                        break;
+                    case 2:
+                        ManageTeacherUI.showMenu();
+                        break;
+                    case 3:
+                        ManageClassGroupUI.showMenu();
+                        break;
+                    case 4:
+                        ManageGroupScheduleUI.showMenu();
+                        return;
+                    case 5:
+                        CourseUI.showMenu();
+                        return;
+                    case 6:
+                        ManageExamScheduleUI.showMenu();
+                        return;
+                    case 7:
+                        ManageGradeUI.showMenu();
+                        return;
+                    case 8:
+                        NotificationUI.showMenu(adminId);
+                        break;
+                    default:
+                        System.out.println("❌ Lựa chọn không hợp lệ!");
+                }
+            }catch (Exception ex) {
+            System.out.println("❌ Đã có lỗi: " + ex.getMessage());
             }
         }
     }

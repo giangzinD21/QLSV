@@ -4,6 +4,7 @@ import dao.CourseDAO;
 import model.Course;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class CourseUI {
@@ -11,41 +12,34 @@ public class CourseUI {
     private static final CourseDAO courseDAO = new CourseDAO();
 
     public static void showMenu() {
-        while (true) {
-            System.out.println("\nChọn chức năng:");
-            System.out.println("1. Thêm môn học");
-            System.out.println("2. Sửa môn học");
-            System.out.println("3. Xóa môn học");
-            System.out.println("4. Xem tất cả môn học");
-            System.out.println("5. Tìm môn học theo ID");
-            System.out.println("6. Tìm môn học theo tên hoặc code");
-            System.out.println("7. Thoát");
-
-            System.out.print("👉 Nhập lựa chọn: ");
-            String input = scanner.nextLine();
-            int choice;
+        int choice;
+        do {
+            System.out.println("\n==================== QUẢN LÝ MÔN HỌC ====================");
+            System.out.println("1. Xem danh sách môn học");
+            System.out.println("2. Thêm môn học");
+            System.out.println("3. Sửa môn học");
+            System.out.println("4. Xóa môn học");
+            System.out.println("5. Tìm môn học theo code hoặc tên");
+            System.out.println("0. Quay lại");
+            System.out.print("Chọn chức năng: ");
 
             try {
-                choice = Integer.parseInt(input);
+                choice = Integer.parseInt(scanner.nextLine().trim());
             } catch (NumberFormatException e) {
-                System.out.println("❌ Lựa chọn không hợp lệ. Vui lòng nhập số.");
-                continue;
+                System.out.println(">> Vui lòng nhập số.");
+                choice = -1;
             }
 
             switch (choice) {
-                case 1 -> addCourse();
-                case 2 -> updateCourse();
-                case 3 -> deleteCourse();
-                case 4 -> showCourses();
-                case 5 -> searchCourseById();
-                case 6 -> selectByCondition();
-                case 7 -> {
-                    System.out.println("👋 Thoát chương trình.");
-                    return;
-                }
-                default -> System.out.println("❌ Lựa chọn không hợp lệ! Vui lòng thử lại.");
+                case 1 -> viewCourses();
+                case 2 -> addCourse();
+                case 3 -> updateCourse();
+                case 4 -> deleteCourse();
+                case 5 -> findCourse();
+                case 0 -> System.out.println(">> Quay lại menu chính.");
+                default -> System.out.println(">> Lựa chọn không hợp lệ.");
             }
-        }
+        } while (choice != 0);
     }
 
     // ======== VALIDATION =========
@@ -67,59 +61,29 @@ public class CourseUI {
         }
     }
     // =============================
-
+    private static void viewCourses() {
+        List<Course> list = courseDAO.selectAll();
+        if (list.isEmpty()) {
+            System.out.println(">> Chưa có môn học nào.");
+            return;
+        }
+        System.out.printf("%-5s | %-10s | %-30s | %s%n", "ID", "CODE", "NAME", "CREDITS");
+        System.out.println("-------------------------------------------------------------");
+        for (Course c : list) {
+            System.out.printf("%-5d | %-10s | %-30s | %d%n",
+                    c.getCourseId(), c.getCourseCode(), c.getCourseName(), c.getCredits());
+        }
+    }
     private static void addCourse() {
-        int courseId;
-        String courseCode;
-        String courseName;
-        int credits;
+        System.out.print("Mã môn học: ");
+        String code = scanner.nextLine().trim();
+        System.out.print("Tên môn học: ");
+        String name = scanner.nextLine().trim();
+        System.out.print("Số tín chỉ: ");
+        int cr = Integer.parseInt(scanner.nextLine().trim());
 
-        while (true) {
-            try {
-                System.out.print("Nhập ID môn học: ");
-                courseId = Integer.parseInt(scanner.nextLine().trim());
-                break;
-            } catch (Exception e) {
-                System.out.println("❌ ID không hợp lệ.");
-            }
-        }
-
-        while (true) {
-            try {
-                System.out.print("Nhập mã môn học: ");
-                courseCode = scanner.nextLine().trim();
-                validateNotEmpty(courseCode, "Mã môn học");
-                break;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-
-        while (true) {
-            try {
-                System.out.print("Nhập tên môn học: ");
-                courseName = scanner.nextLine().trim();
-                validateNotEmpty(courseName, "Tên môn học");
-                break;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-
-        while (true) {
-            try {
-                System.out.print("Nhập số tín chỉ: ");
-                credits = Integer.parseInt(scanner.nextLine().trim());
-                validateCredits(credits);
-                break;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-
-        Course course = new Course(courseId, courseCode, courseName, credits);
-        courseDAO.add(course);
-        System.out.println("✅ Môn học đã được thêm thành công!");
+        Course c = new Course(code, name, cr);
+        courseDAO.add(c);
     }
 
     private static void updateCourse() {
@@ -134,7 +98,7 @@ public class CourseUI {
             }
         }
 
-        Course course = courseDAO.findById(courseId);
+        Course course = courseDAO.selectById(courseId);
         try {
             validateCourseExists(course);
         } catch (Exception e) {
@@ -179,106 +143,23 @@ public class CourseUI {
         courseDAO.update(course);
         System.out.println("✅ Môn học đã được cập nhật!");
     }
-
     private static void deleteCourse() {
-        Course course = null;
-        while (true) {
-            try {
-                System.out.print("Nhập ID hoặc tên môn học cần xóa: ");
-                String input = scanner.nextLine().trim();
-                validateNotEmpty(input, "Thông tin xóa");
-
-                if (input.matches("\\d+")) {
-                    int courseId = Integer.parseInt(input);
-                    course = courseDAO.findById(courseId);
-                } else {
-                    Course temp = new Course();
-                    temp.setCourseName(input);
-                    ArrayList<Course> courses = courseDAO.selectByCondition(temp);
-                    if (!courses.isEmpty()) {
-                        System.out.println("📋 Danh sách môn học tìm thấy:");
-                        for (Course c : courses) {
-                            System.out.println(c);
-                        }
-                        System.out.print("Nhập ID môn học muốn xóa: ");
-                        int id = Integer.parseInt(scanner.nextLine().trim());
-                        course = courseDAO.findById(id);
-                    }
-                }
-
-                validateCourseExists(course);
-                courseDAO.delete(course);
-                System.out.println("✅ Môn học đã được xóa!");
-                return;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
-    private static void showCourses() {
-        ArrayList<Course> courses = courseDAO.selectAll();
-        if (courses.isEmpty()) {
-            System.out.println("⚠️ Không có môn học nào.");
+        System.out.print("Nhập course_id cần xóa: ");
+        int id = Integer.parseInt(scanner.nextLine().trim());
+        System.out.print("Xác nhận xóa? (y/n): ");
+        if (!scanner.nextLine().trim().equalsIgnoreCase("y")) {
+            System.out.println("Đã hủy.");
             return;
         }
-
-        System.out.println("📋 Danh sách môn học:");
-        for (Course course : courses) {
-            System.out.println(course);
-        }
+        Course c = courseDAO.selectById(id);
+        courseDAO.delete(c);
     }
 
-    private static void searchCourseById() {
-        while (true) {
-            try {
-                System.out.print("Nhập ID môn học cần tìm: ");
-                int id = Integer.parseInt(scanner.nextLine().trim());
-
-                Course course = new Course();
-                course.setCourseId(id);
-                Course result = courseDAO.selectById(course);
-                validateCourseExists(result);
-
-                System.out.println("🔎 Thông tin môn học:");
-                System.out.println(result);
-                break;
-
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
-    private static void selectByCondition() {
-        while (true) {
-            try {
-                System.out.print("Nhập tên hoặc mã môn học cần tìm: ");
-                String keyword = scanner.nextLine().trim();
-                validateNotEmpty(keyword, "Từ khóa tìm kiếm");
-
-                Course course = new Course();
-                course.setCourseName(keyword);
-                course.setCourseCode(keyword);
-
-                ArrayList<Course> courses = courseDAO.selectByCondition(course);
-                if (courses.isEmpty()) {
-                    throw new IllegalArgumentException("❌ Không tìm thấy môn học nào!");
-                }
-
-                System.out.println("📋 Danh sách môn học tìm thấy:");
-                for (Course c : courses) {
-                    System.out.println(c);
-                }
-                break;
-
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-    }
-
-    public static void main(String[] args) {
-        showMenu();
+    private static void findCourse() {
+        System.out.print("Nhập code hoặc tên: ");
+        String key = scanner.nextLine().trim();
+        Course c = courseDAO.selectByName(key);
+        if (c == null) System.out.println(">> Không tìm thấy.");
+        else System.out.println(c);
     }
 }

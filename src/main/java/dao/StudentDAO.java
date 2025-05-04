@@ -1,256 +1,212 @@
+// dao/StudentDAO.java
 package dao;
 
 import model.Student;
-import ui.StudentUI;
+import model.User;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
-
 public class StudentDAO implements InterfaceDAO<Student> {
-    public void getCheckStudent(String studentEmail, String studentPassword) {
-        String sql = "SELECT * FROM students WHERE email= ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, studentEmail);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) { // Phải có rs.next() trước khi lấy dữ liệu từ ResultSet
-                if (rs.getString("email").equals(studentEmail) && rs.getString("password").equals(studentPassword)) {
-<<<<<<< HEAD
-                    int studentId = rs.getInt("student_id"); // hoặc rs.getInt("id") tùy theo tên cột
-                    StudentUI.indexStudents(studentId); // ✅ Truyền đúng tham số
-=======
-                    StudentUI.showMenu();
->>>>>>> origin/lamhoang
-                } else {
-                    System.out.println("Wrong email or password");
+    private Connection conn = DatabaseConnection.getConnection();
+    private UserDAO userDAO = new UserDAO();
+
+    @Override
+    public void add(Student s) {
+        try {
+            // 1) Tạo user với role=4
+            User u = new User(
+                    s.getUsername(),
+                    s.getPassword(),
+                    4,
+                    s.getEmail(),
+                    new Timestamp(System.currentTimeMillis())
+            );
+            int userId = userDAO.add(u);
+
+            if (userId>0) {
+
+                String sql = "INSERT INTO students(user_id, group_id,  name, student_code, email) VALUES(?,?,?,?,?)";
+                try (PreparedStatement p = conn.prepareStatement(sql)) {
+                    p.setInt   (1, userId);
+                    p.setInt   (2, s.getGroupId());
+                    p.setString(3, s.getName());
+                    p.setString(4, s.getStudentCode());
+                    p.setString(5, s.getEmail());
+                    p.executeUpdate();
                 }
+                System.out.println("Thêm sinh viên thành công");
             } else {
-                System.out.println("User not found");
+                System.out.println("Thêm sinh viên thất bại");
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch(Exception e){
+            System.out.println(e.getMessage());
         }
     }
 
     @Override
-    public void add(Student student) {
-        String sql = "INSERT INTO students (student_id, name, student_code, email, password) VALUES (?, ?, ?, ?, ?)";
+    public void update(Student s) {
+        try {
+            // 1) Cập nhật users
+            User u = new User(
+                    s.getUserId(),
+                    s.getUsername(),
+                    s.getPassword(),
+                    4,
+                    s.getEmail(),
+                    null
+            );
+            userDAO.update(u);
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, student.getStudentId());
-            stmt.setString(2, student.getName());
-            stmt.setString(3, student.getStudentCode());
-            stmt.setString(4, student.getEmail());
-            stmt.setString(5, student.getPassword());
-
-            int rowsAffected = stmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("Student added successfully!");
+            // 2) Cập nhật students
+            String sql = "UPDATE students SET name=?, group_id=?, student_code=?, email=? WHERE user_id=?";
+            try (PreparedStatement p = conn.prepareStatement(sql)) {
+                p.setString(1, s.getName());
+                p.setInt   (2, s.getGroupId());
+                p.setString(3, s.getStudentCode());
+                p.setString(4, s.getEmail());
+                p.setInt   (5, s.getUserId());
+                p.executeUpdate();
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Cập nhật sinh viên thành công");
+        } catch(Exception e){
+            System.out.println(e.getMessage());
         }
     }
 
-
-
     @Override
-    public void update(Student student) {
-        String sql = "UPDATE students SET name = ?, student_code = ?, email = ?, password = ? WHERE student_id = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            // Thiết lập các tham số cho PreparedStatement
-            stmt.setString(1, student.getName());
-            stmt.setString(2, student.getStudentCode());
-            stmt.setString(3, student.getEmail());
-            stmt.setString(4, student.getPassword());
-            stmt.setInt(5,student.getStudentId()); // Sử dụng studentId để tìm sinh viên cần cập nhật
-
-            // Thực thi câu lệnh update
-            int rowsAffected = stmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("Student updated successfully!");
-            } else {
-                System.out.println("No student found with the given ID.");
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public void delete(Student s) {
+        // Xóa user => cascade xóa students
+        try{
+            userDAO.delete(s.getUserId());
+            System.out.println("Xóa sinh viên thành công");
+        }
+        catch(Exception e){
+            System.out.println("Lỗi: " + e.getMessage());
         }
     }
 
-
-
     @Override
-    public void delete(Student student) {
-        String sql = "DELETE FROM students WHERE student_id = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            // Thiết lập tham số cho PreparedStatement
-            stmt.setInt(1, student.getStudentId()); // Sử dụng studentId để xác định sinh viên cần xóa
-
-            // Thực thi câu lệnh delete
-            int rowsAffected = stmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                System.out.println("Student deleted successfully!");
-            } else {
-                System.out.println("No student found with the given ID.");
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    @Override
-<<<<<<< HEAD
-    public Student selectById(String id) {
-        return null;
-=======
-    public Student selectById(Student student) {
-        String sql = "SELECT * FROM students WHERE student_id = ?";
-        Student result = null;
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            // Thiết lập tham số cho PreparedStatement
-            stmt.setInt(1, student.getStudentId()); // Sử dụng studentId để tìm sinh viên
-
-            // Thực thi câu lệnh SELECT và lấy kết quả
-            try (ResultSet rs = stmt.executeQuery()) {
+    public Student selectById(int id) {
+        try {
+            // lấy theo student_id
+            String sel = "SELECT * FROM students WHERE student_id=?";
+            try (PreparedStatement p = conn.prepareStatement(sel)) {
+                p.setInt(1,id);
+                ResultSet rs = p.executeQuery();
                 if (rs.next()) {
-                    // Lấy thông tin sinh viên từ ResultSet và tạo đối tượng Student
-                    result = new Student(
-                            rs.getInt("student_id"),
-                            rs.getString("name"),
-                            rs.getString("student_code"),
-                            rs.getString("email"),
-                            rs.getString("password")
-                    );
+                    int uid = rs.getInt("user_id");
+                    // lấy user
+                    String su = "SELECT * FROM users WHERE user_id=?";
+                    try (PreparedStatement pu = conn.prepareStatement(su)) {
+                        pu.setInt(1, uid);
+                        ResultSet ru = pu.executeQuery();
+                        if (ru.next()) {
+                            return new Student(
+                                    rs.getInt("student_id"),
+                                    uid,
+                                    rs.getInt("group_id"),
+                                    ru.getString("username"),
+                                    ru.getString("password"),
+                                    rs.getString("name"),
+                                    rs.getString("student_code"),
+                                    ru.getString("email"),
+                                    ru.getTimestamp("created_at")
+                            );
+                        }
+                    }
                 }
             }
-
-        } catch (SQLException e) {
+        } catch(SQLException e){
             e.printStackTrace();
         }
-
-        return result;
->>>>>>> origin/lamhoang
+        return null;
     }
-
 
     @Override
     public Student selectByName(String name) {
-        String sql = "SELECT * FROM students WHERE name = ?";
-        Student result = null;
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            // Thiết lập tham số cho PreparedStatement
-            stmt.setString(1, name); // Sử dụng tên để tìm sinh viên
-
-            // Thực thi câu lệnh SELECT và lấy kết quả
-            try (ResultSet rs = stmt.executeQuery()) {
+        // tìm theo student_code hoặc name; dùng name theo interface
+        try {
+            String sel = "SELECT * FROM students WHERE name=?";
+            try (PreparedStatement p = conn.prepareStatement(sel)) {
+                p.setString(1,name);
+                ResultSet rs = p.executeQuery();
                 if (rs.next()) {
-                    // Lấy thông tin sinh viên từ ResultSet và tạo đối tượng Student
-                    result = new Student(
-                            rs.getInt("student_id"),
-                            rs.getString("name"),
-                            rs.getString("student_code"),
-                            rs.getString("email"),
-                            rs.getString("password")
-                            // Nếu có thêm trường khác, bạn cần thêm vào constructor
-                    );
+                    int uid = rs.getInt("user_id");
+                    String su = "SELECT * FROM users WHERE user_id=?";
+                    try (PreparedStatement pu = conn.prepareStatement(su)) {
+                        pu.setInt(1, uid);
+                        ResultSet ru = pu.executeQuery();
+                        if (ru.next()) {
+                            return new Student(
+                                    rs.getInt("student_id"),
+                                    uid,
+                                    rs.getInt("group_id"),
+                                    ru.getString("username"),
+                                    ru.getString("password"),
+                                    rs.getString("name"),
+                                    rs.getString("student_code"),
+                                    ru.getString("email"),
+                                    ru.getTimestamp("created_at")
+                            );
+                        }
+                    }
                 }
             }
-
-        } catch (SQLException e) {
+        } catch(SQLException e){
             e.printStackTrace();
         }
-
-        return result; // Trả về đối tượng sinh viên nếu tìm thấy, nếu không trả về null
+        return null;
     }
-
 
     @Override
     public ArrayList<Student> selectAll() {
-        String sql = "SELECT * FROM students";
-        ArrayList<Student> students = new ArrayList<>();
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            // Duyệt qua tất cả các dòng kết quả trả về
+        ArrayList<Student> list = new ArrayList<>();
+        String sel = "SELECT * FROM students";
+        try (PreparedStatement p = conn.prepareStatement(sel);
+             ResultSet rs = p.executeQuery()) {
             while (rs.next()) {
-                // Thêm đối tượng Student vào danh sách students
-                students.add(new Student(
-                        rs.getInt("student_id"), // Lấy student_id từ ResultSet
-                        rs.getString("name"), // Lấy name từ ResultSet
-                        rs.getString("student_code"), // Lấy student_code từ ResultSet
-                        rs.getString("email"), // Lấy email từ ResultSet
-                        rs.getString("password") // Lấy password từ ResultSet
-                ));
+                int uid = rs.getInt("user_id");
+                String su = "SELECT * FROM users WHERE user_id=?";
+                try (PreparedStatement pu = conn.prepareStatement(su)) {
+                    pu.setInt(1,uid);
+                    ResultSet ru = pu.executeQuery();
+                    if (ru.next()) {
+                        list.add(new Student(
+                                rs.getInt("student_id"),
+                                uid,
+                                rs.getInt("group_id"),
+                                ru.getString("username"),
+                                ru.getString("password"),
+                                rs.getString("name"),
+                                rs.getString("student_code"),
+                                ru.getString("email"),
+                                ru.getTimestamp("created_at")
+                        ));
+                    }
+                }
             }
-
-        } catch (SQLException e) {
+        } catch(SQLException e){
             e.printStackTrace();
         }
-
-        return students; // Trả về danh sách sinh viên
+        return list;
     }
-
 
     @Override
-    public ArrayList<Student> selectByCondition(Student student) {
-        String sql = "SELECT * FROM students WHERE email LIKE ?";
-        ArrayList<Student> students = new ArrayList<>();
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            // Thiết lập điều kiện tìm kiếm theo email
-            stmt.setString(1, "%" + student.getEmail() + "%"); // Tìm kiếm email chứa giá trị input
-
-            ResultSet rs = stmt.executeQuery();
-
-            // Duyệt qua tất cả các dòng kết quả trả về
-            while (rs.next()) {
-                // Thêm đối tượng Student vào danh sách students
-                students.add(new Student(
-                        rs.getInt("student_id"), // Lấy student_id từ ResultSet
-                        rs.getString("name"), // Lấy name từ ResultSet
-                        rs.getString("student_code"), // Lấy student_code từ ResultSet
-                        rs.getString("email"), // Lấy email từ ResultSet
-                        rs.getString("password") // Lấy password từ ResultSet
-                ));
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return students; // Trả về danh sách sinh viên tìm được
+    public ArrayList<Student> selectByCondition(String cond) {
+        return null;  // không dùng
     }
-
-
-
+    public int selectByUserId(int userId) {
+        String sql = "SELECT * FROM students WHERE user_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("student_id");
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return -1;
+    }
 }

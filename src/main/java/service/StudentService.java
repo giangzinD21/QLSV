@@ -9,7 +9,7 @@ public class StudentService {
     private StudentDAO studentDAO = new StudentDAO();
 
     public void registerStudent(String name, String student_code, String email, String password) {
-        Student student = new Student(name, student_code, email, password);
+        Student student = new Student();
         studentDAO.add(student);
         System.out.println("Đã đăng ký sinh viên: " + name);
     }

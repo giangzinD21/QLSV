@@ -1,6 +1,8 @@
 package dao;
 
+import model.*;
 import model.Class;
+
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -58,13 +60,13 @@ public class ClassDAO implements InterfaceDAO<Class> {
     }
 
     @Override
-    public Class selectById(Class c) {
+    public Class selectById(int id) {
         String sql = "SELECT * FROM classes WHERE class_id = ?";
         try (
                 Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
-            stmt.setString(1, c.getClassId());
+            stmt.setInt(1,id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return new Class(
@@ -79,7 +81,6 @@ public class ClassDAO implements InterfaceDAO<Class> {
         }
         return null;
     }
-
     @Override
     public Class selectByName(String name) {
         String sql = "SELECT * FROM classes WHERE class_id = ?"; // dùng class_id làm tên
@@ -129,8 +130,7 @@ public class ClassDAO implements InterfaceDAO<Class> {
         return list;
     }
 
-    @Override
-    public ArrayList<Class> selectByCondition(Class condition) {
+    public ArrayList<Class> selectByCondition(String teacherId) {
         ArrayList<Class> list = new ArrayList<>();
         String sql = "SELECT * FROM classes WHERE teacher_id = ?";
 
@@ -138,7 +138,7 @@ public class ClassDAO implements InterfaceDAO<Class> {
                 Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
-            stmt.setString(1, condition.getTeacherId());
+            stmt.setString(1, teacherId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Class c = new Class(

@@ -60,11 +60,7 @@ public class Course {
 
     @Override
     public String toString() {
-        return "Course{" +
-                "courseId=" + courseId +
-                ", courseCode='" + courseCode + '\'' +
-                ", courseName='" + courseName + '\'' +
-                ", credits=" + credits +
-                '}';
+        return String.format("ID=%d | Code=%s | Name=%s | Credits=%d",
+                courseId, courseCode, courseName, credits);
     }
 }

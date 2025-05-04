@@ -1,5 +1,8 @@
 package dao;
 
+import model.*;
+import model.Class;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
@@ -10,11 +13,12 @@ public interface InterfaceDAO <T>{
 
     public void delete(T t);
 
-    public T selectById(String id);
+    public T selectById(int id);
 
     public T selectByName(String name);
 
     public ArrayList<T> selectAll();
 
-    public ArrayList<T> selectByCondition(T t);
+    ArrayList<T> selectByCondition(String condition);
+
 }
